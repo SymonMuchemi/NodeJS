@@ -11,6 +11,7 @@
   "author": "SymonMuchemi",
   "license": "ISC",
   "dependencies": {
+    "formidable": "^3.5.1",
     "nodemon": "^3.1.7"
   }
 }
