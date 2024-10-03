@@ -84,3 +84,30 @@ export async function updateElement(id, newData) {
         throw error;
     }
 }
+
+/**
+ * Deletes an element with the specified ID from the data file.
+ *
+ * @async
+ * @function deleteElement
+ * @param {string} id - The ID of the element to delete.
+ * @returns {Promise<void>} - A promise that resolves when the delete operation is complete.
+ * @throws {Error} - Throws an error if there is an issue deleting the data.
+ */
+export async function deleteElement(id) {
+    try {
+        const data = await getFileData();
+        const newData = data.filter((obj) => obj.id !== id);
+
+        if (newData.length === data.length) {
+            console.log(`No entry found with ID: ${id}`);
+            return;
+        }
+
+        await fs.writeFile(dataFilePath, JSON.stringify(newData, null, 2));
+        console.log(`Delete operation success for ID: ${id}`);
+    } catch (error) {
+        console.error(`Error deleting data with ID ${id}: ${error}`);
+        throw error;
+    }
+}
