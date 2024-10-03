@@ -1,9 +1,9 @@
-import fs from 'fs/promises';
 import http from 'http';
-import { appendToFile, getFileData } from "./utils.js";
+import { appendToFile, getFileData, getFileDataSync } from "./utils.js";
 
 const eventsData = getFileData();
-const baseURL = '/api/events'
+const baseURL = '/api/events';
+let lastId = getFileDataSync() !== null ? getFileDataSync().length : 0;
 
 const router = async (req, resp) => {
     const { url, method } = req;
@@ -17,6 +17,7 @@ const router = async (req, resp) => {
     // get all event in JSON
     if (url === baseURL && method === 'GET') {
         eventsData.then(data => {
+            lastId = data.length;
             sendJSONResponse(200, data);
         });
     }
@@ -29,6 +30,28 @@ const router = async (req, resp) => {
             const event = data.find(obj => obj.id === id);
             sendJSONResponse(200, event);
         });
+    }
+
+    if (url === baseURL + '/add' && method === 'POST') {
+        let body = '';
+
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+
+        req.on('end', () => {
+            const { imageUrl, title, price, date, location, company } = JSON.parse(body);
+
+            const newData = {
+                imageUrl, title, price, date, location, company, id: ++lastId
+            }
+
+            appendToFile(newData).then(() => {
+                sendJSONResponse(201, { message: 'Added event successfully!' });
+            }).catch(err => {
+                sendJSONResponse(400, { message: 'Could not add data!' });
+            })
+        })
     }
 
 };
