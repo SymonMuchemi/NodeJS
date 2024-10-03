@@ -1,0 +1,19 @@
+{
+  "name": "events-api",
+  "version": "1.0.0",
+  "description": "An API for managing events",
+  "main": "api.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "nodemon api.js"
+  },
+  "keywords": [],
+  "author": "SymonMuchemi",
+  "license": "ISC",
+  "dependencies": {
+    "formidable": "^3.5.1",
+    "nodemon": "^3.1.7",
+    "uuid": "^10.0.0"
+  }
+}
