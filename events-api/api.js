@@ -1,5 +1,5 @@
 import http from 'http';
-import { appendToFile, getFileData, updateElement } from "./utils.js";
+import { appendToFile, getFileData, updateElement, deleteElement } from "./utils.js";
 import { error } from 'console';
 
 let lastId = 0;
@@ -41,6 +41,10 @@ const router = async (req, resp) => {
             const updatedEvent = JSON.parse(body);
             await updateElement(id, updatedEvent);
             sendJSONResponse(resp, 200, { message: "Event updated successfully!" });
+        } else if (url.match(/\/api\/events\/delete\/\d+/) && method === 'DELETE') {
+            const id = parseInt(url.split('/').pop(), 10);
+            await deleteElement(id);
+            sendJSONResponse(resp, 200, { message: "Event Deleted successfully!" });
         } else {
             sendJSONResponse(resp, 404, { message: 'Not Found' });
         }
