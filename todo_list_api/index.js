@@ -1,111 +1,97 @@
 import todos from "./db.js";
-import http from "http";
+import http from 'http';
+import { v4 as uuidv4 } from 'uuid'; // Using uuid for unique ID generation
 
-const baseUrl = "/api/todos";
-let lastId = todos.pop().id;
+let todosList = [...todos]; // Maintain the state of todos
 
-console.log(`Last id: ${lastId}`);
+const router = async (req, res) => {
+    const { url, method } = req;
 
-const sendJsonResponse = (resp, code, data) => {
-    resp.writeHead(code, { "Content-Type": "application/json" });
-    return resp.end(JSON.stringify(data));
-};
+    // Helper function to send JSON responses
+    const sendJSONResponse = (statusCode, data) => {
+        res.setHeader("Content-Type", "application/json");
+        res.writeHead(statusCode);
+        res.end(JSON.stringify(data));
+    };
 
-const fetchTodos = (req, resp) => {
-    if (req.url === baseUrl && req.method === "GET") {
-        sendJsonResponse(resp, 200, todos);
-        return;
+    // GET all todos
+    if (url === "/api/todos" && method === "GET") {
+        sendJSONResponse(200, todosList);
     }
 
-    if (req.url.match(/^\/api\/todos\/\d+$/) && req.method === "GET") {
-        let id = req.url.split("/").pop();
-        id = parseInt(id, 10);
+    // GET a single todo by ID
+    else if (url.match(/\/api\/todos\/\d+/) && method === "GET") {
+        const id = parseInt(url.split("/")[3]);
+        const todo = todosList.find((todo) => todo.id === id);
 
-        let data = todos.find((obj) => obj.id === id);
-        if (data) {
-            sendJsonResponse(resp, 200, data);
+        if (todo) {
+            sendJSONResponse(200, todo);
         } else {
-            sendJsonResponse(resp, 404, { error: "Todo not found" });
+            sendJSONResponse(404, { message: "Todo not found" });
         }
-        return;
     }
 
-    if (req.url.match(/^\/api\/todos\/update\/\d+$/) && req.method === "PUT") {
+    // POST (Create) a new todo
+    else if (url === "/api/todos" && method === "POST") {
         let body = "";
-
-        req.on("data", (chunk) => (body += chunk));
-
-        req.on("end", () => {
-            try {
-                let id = req.url.split("/").pop();
-                id = parseInt(id, 10);
-                let todoToUpdate = todos.find((obj) => obj.id == id);
-                const parsedData = JSON.parse(body);
-
-                // update the todo
-                todoToUpdate.title = parsedData.title;
-                todoToUpdate.completed = parsedData.completed;
-
-                sendJsonResponse(resp, 200, { message: "Updated todo successfully!" });
-            } catch (error) {
-                sendJsonResponse(resp, 400, {
-                    message: "Error updating todo",
-                    reason: error.toString(),
-                });
-            }
-        });
-    }
-
-    if (req.url === baseUrl && req.method === "POST") {
-        let body = "";
-
-        req.on("data", (chunk) => {
+        req.on("data", chunk => {
             body += chunk.toString();
         });
-
         req.on("end", () => {
-            try {
-                const parsedData = JSON.parse(body);
-                const id = ++lastId;
-                const title = parsedData.title;
-                const completed = parsedData.completed || false;
-                const newTodo = { id, title, completed };
+            const { title, description, completed } = JSON.parse(body);
+            const newTodo = {
+                id: uuidv4(), // Generate a unique ID
+                title,
+                description,
+                completed: completed || false
+            };
+            todosList.push(newTodo);
+            sendJSONResponse(201, newTodo);
+        });
+    }
 
-                todos.push(newTodo);
-                sendJsonResponse(resp, 201, {
-                    message: "Todo added successfully!",
-                    data: newTodo,
-                });
-            } catch (error) {
-                sendJsonResponse(resp, 400, {
-                    message: "Error adding todo!",
-                    error: error.toString(),
-                });
+    // PUT (Update) a todo by ID
+    else if (url.match(/\/api\/todos\/\d+/) && method === "PUT") {
+        const id = parseInt(url.split("/")[3]);
+        let body = "";
+        req.on("data", chunk => {
+            body += chunk.toString();
+        });
+        req.on("end", () => {
+            const { title, description, completed } = JSON.parse(body);
+            const todoIndex = todosList.findIndex((todo) => todo.id === id);
+
+            if (todoIndex !== -1) {
+                const updatedTodo = { ...todosList[todoIndex], title, description, completed };
+                todosList[todoIndex] = updatedTodo;
+                sendJSONResponse(200, updatedTodo);
+            } else {
+                sendJSONResponse(404, { message: "Todo not found" });
             }
         });
     }
 
-    if (req.url.match(/^\/api\/todos\/delete\/\d+$/) && req.url.method === "DELETE") {
-        const id = req.url.split('/').pop()
-        id = parseInt(id, 10);
-        const index = todos.findIndex((obj) => obj.id === id);
+    // DELETE a todo by ID
+    else if (url.match(/\/api\/todos\/\d+/) && method === "DELETE") {
+        const id = parseInt(url.split("/")[3]);
+        const todoIndex = todosList.findIndex((todo) => todo.id === id);
 
-        if (index > -1) {
-            todos.splice(index, 1);
-            sendJsonResponse(resp, 204, { message: "Deleted todo successfully!" });
+        if (todoIndex !== -1) {
+            todosList = todosList.filter((todo) => todo.id !== id);
+            sendJSONResponse(200, { message: "Todo deleted successfully" });
         } else {
-            sendJsonResponse(resp, 400, {
-                message: "Error deleting todo!",
-                error: error.toString(),
-            });
+            sendJSONResponse(404, { message: "Todo not found" });
         }
     }
-    sendJsonResponse(resp, 400, { Error: '400 bad request!' });
-}
 
+    // If no route matches, send a 404 response
+    else {
+        sendJSONResponse(404, { message: "Route not found" });
+    }
+};
 
-const server = http.createServer(fetchTodos);
+const server = http.createServer(router);
 
 server.listen(8080, () => {
-    console.log("The server is running on port 8080!");
-});
+    console.log('The server is running on port 8080!');
+})
