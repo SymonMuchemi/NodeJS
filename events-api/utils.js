@@ -57,3 +57,30 @@ export function getFileDataSync() {
         return null;
     }
 }
+
+
+/**
+ * Updates an element in the data file with the given ID and new data.
+ *
+ * @param {string} id - The ID of the element to update.
+ * @param {Object} newData - The new data to update the element with.
+ * @returns {Promise<void>} - A promise that resolves when the update is complete.
+ * @throws {Error} - Throws an error if there is an issue reading or writing the file.
+ */
+export async function updateElement(id, newData) {
+    try {
+        const data = await getFileData();
+        const index = data.findIndex((obj) => obj.id === id);
+
+        if (index !== -1) {
+            data[index] = { ...data[index], ...newData };
+            await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2));
+            console.log(`Update operation success for ID: ${id}`);
+        } else {
+            console.log(`No entry found with ID: ${id}`);
+        }
+    } catch (error) {
+        console.error(`Error updating data with ID ${id}: ${error}`);
+        throw error;
+    }
+}
