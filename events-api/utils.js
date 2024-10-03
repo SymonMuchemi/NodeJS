@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import { readFileSync } from 'fs';
 
 const dataFilePath = 'db.json';
 
@@ -49,10 +50,10 @@ export async function getFileData() {
  */
 export function getFileDataSync() {
     try {
-        const data = fs.readFileSync(dataFilePath, 'utf-8');
-        return data;
+        const data = readFileSync(dataFilePath, 'utf-8');
+        return JSON.parse(data);
     } catch (error) {
-        console.log(`Error reading file from ${dataFilePath}: ${err}`);
+        console.log(`Error reading file from ${dataFilePath}: ${error}`);
         return null;
     }
 }
