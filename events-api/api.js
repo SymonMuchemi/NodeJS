@@ -1,6 +1,5 @@
 import http from 'http';
 import { appendToFile, getFileData, updateElement, deleteElement } from "./utils.js";
-import { error } from 'console';
 
 let lastId = 0;
 
@@ -17,7 +16,7 @@ const router = async (req, resp) => {
 
     try {
         const eventsData = await getFileData();
-        lastId = eventsData.length;
+        lastId = eventsData.length > 0 ? Math.max(...eventsData.map(e => e.id)) : 0;
 
         if (url === baseURL && method === 'GET') {
             sendJSONResponse(resp, 200, eventsData);
@@ -50,16 +49,22 @@ const router = async (req, resp) => {
         }
     } catch (error) {
         console.error('Error in router:', error);
-        sendJSONResponse(resp, 500, { message: 'Internal Server Error' });
+        sendJSONResponse(resp, 500, { message: 'Internal Server Error', error: error.message });
     }
 };
 
 const getRequestBody = (req) => {
     return new Promise((resolve, reject) => {
         let body = '';
-        req.on('data', chunk => body += chunk.toString());
-        req.on('end', () => resolve(body));
-        req.on('error', reject(new Error(`Error getting request body!`)));
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+        req.on('end', () => {
+            resolve(body);
+        });
+        req.on('error', (error) => {
+            reject(new Error(`Error getting request body: ${error.message}`));
+        });
     });
 };
 
