@@ -14,6 +14,14 @@ app.get('/users', (req, resp) => {
     const {name, team} = req.query;
 
     resp.send(`Name: ${name}\nTeam: ${team}`);
+});
+
+// handles both query and route parameters
+app.get('/user/:id/', (req, resp) => {
+    const userId = req.params.id;
+    const filter = req.query.filter;
+
+    resp.send(`User ID: ${userId}\nFilter: ${filter}`);
 })
 
 app.listen(PORT, () => {
