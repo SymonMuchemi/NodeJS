@@ -3,6 +3,7 @@ import express, { Application, Request, Response } from 'express';
 const app: Application = express();
 const PORT: number = 3000;
 
+// route that handles a route/request parameter
 app.get('/users/:id', (req: Request, resp: Response) => {
     const userId = req.params.id;
     resp.send(`User ID: ${userId}`);
