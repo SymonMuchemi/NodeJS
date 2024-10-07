@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Document</title>
+</head>
+<body>
+    <section>
+        <nav>
+            <div class="buttons">
+                <button class="btn" id="price-desc">Descending Price(High to Low)</button>
+                <button class="btn" id="price-asc">Ascending Price(Low to High)</button>
+                <button class="btn" id="date">Sorted by Date</button>
+            </div>
+            <div class="cart-display">
+                <button id="cart-icon">
+                    <img src="./cart.png" alt="">
+                    <span class="cart-count">0</span>
+                </button>
+    
+                </div>
+            </div>
+        </nav>
+        <div class="cart-products">
+            <h1>Shopping Cart</h1>
+            <div class="cart-items" id="list-products">
+                <!-- insert cart items -->
+                
+            </div>
+            <div class="cart-subtotal">
+                <p>Subtotal: <span id="cart-subtotal">0</span>Ksh</p>
+            </div>
+            <div class="cart-button">
+                <button class="btn" id="close-cart">Close</button>
+                <button class="btn" id="checkout">Checkout</button>
+            </div>
+            
+        </div>
+        <div class="content-display" id="content-display">
+
+        </div>
+    </section>
+    
+
+    <script src="./script.js"></script>
+</body>
+</html>
